@@ -27,7 +27,10 @@ export const SelectTraderAccounts: FC = () => {
 
         try {
 
-            // TRG Fetching
+				const owner = publicKey
+				const marketProductGroup = new PublicKey(mpgPubkey)
+				const trgs = await manifest.getTRGsOfOwner(owner, marketProductGroup)
+				setTrgsArr(trgs)
 
         } catch (error: any) {
             notify({ type: 'error', message: `Selecting Trader Account failed!`, description: error?.message });
@@ -38,17 +41,27 @@ export const SelectTraderAccounts: FC = () => {
     const handleCreateTRG = useCallback(async () => {
         try {
 
-            // TRG Creation
+            const marketProductGroup = new PublicKey(mpgPubkey)
+						await manifest.createTrg(marketProductGroup)
 
             fetchTraderAccounts();
         } catch (error: any) {
             notify({ type: 'error', message: `Creating Trader Account failed!`, description: error?.message });
         }
-    }, [fetchTraderAccounts, manifest]);
+    }, [fetchTraderAccounts, manifest]);, [fetchTraderAccounts, manifest]);
 
-    const handleSelection = useCallback(async (selectedValue: string) => {
+    const handleSelection = useCallback(async (selectedTrgPubkey: string) => {
+        if (selectedTrgPubkey == "default") return;
 
-            // TRG Selection & Initiation
+        const trgPubkey = new PublicKey(selectedTrgPubkey)
+        const trader = new dexterity.Trader(manifest, trgPubkey)
+
+				await trader.update()
+
+				const marketProductGroup = new PublicKey(mpgPubkey)
+				await manifest.updateOrderbooks(marketProductGroup)
+
+				setTrader(trader)
 
     }, [manifest, setTrader]);
 
